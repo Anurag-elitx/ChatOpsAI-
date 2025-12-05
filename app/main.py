@@ -10,8 +10,8 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.config import APP_NAME, APP_VERSION, APP_ENV, HOST, PORT
-from app.models.intent_classifier import classify_intent
-from app.models.response_generator import generate_response
+from app.agents.workflow import run_agent
+from app.celery_worker import process_document_for_rag
 from app.integrations.external_apis import route_to_integration
 from app.monitoring import track_request
 from app.utils.logger import logger
@@ -61,23 +61,36 @@ async def chat_endpoint(request: Request):
             content={"error": "message field is required and cannot be empty"},
         )
 
-    # Step 1: figure out what the user wants
-    detected_intent = classify_intent(user_message)
+    # Use the LangChain Agentic Workflow
+    try:
+        agent_result = run_agent(user_message)
+        bot_response = agent_result["output"]
+    except Exception as e:
+        bot_response = f"Error running agent: {str(e)}"
 
-    # Step 2: generate a natural-language answer
-    bot_response = generate_response(user_message, detected_intent)
-
-    # Step 3: call external tools if the intent warrants it
-    integration_result = await route_to_integration(detected_intent, user_message)
-
-    # Step 4: record metrics for monitoring dashboards
-    track_request(user_message, detected_intent)
+    # Record metrics for monitoring dashboards
+    track_request(user_message, "agentic_chat")
 
     return {
-        "intent": detected_intent,
+        "intent": "agentic",
         "response": bot_response,
-        "integration_data": integration_result,
+        "integration_data": {},
     }
+
+@server.post("/api/v1/documents")
+async def ingest_document(request: Request):
+    """
+    Ingest a document into the RAG pipeline.
+    """
+    body = await request.json()
+    document_path = body.get("path")
+    if not document_path:
+        return JSONResponse(status_code=400, content={"error": "path is required"})
+        
+    # Trigger background job
+    task = process_document_for_rag.delay(document_path)
+    return {"status": "processing", "task_id": task.id}
+
 
 
 # ── Local dev server ─────────────────────────────────────────
