@@ -1,20 +1,18 @@
-# ChatOps AI Platform
+# Astiva AI - Competitive Intelligence Platform (Internship Project)
 
-An enterprise-grade conversational AI system that connects team chat (Slack, Teams, Web) to internal tools like **JIRA**, **Salesforce**, and **Zendesk** — powered by **Retrieval-Augmented Generation (RAG)** and backed by a full **MLOps / CI-CD** pipeline.
-
-![System Architecture](https://github.com/user-attachments/assets/f8f7722a-e1e6-48e5-aef9-8fcbe1dcf5ad)
+An enterprise-grade conversational AI system that connects team chat and a stunning React dashboard to internal tools — powered by **Retrieval-Augmented Generation (RAG)**, **Agentic Workflows (LangChain)**, and backed by a full **MLOps / CI-CD** pipeline.
 
 ---
 
 ## Why I Built This
 
-Most internal support workflows still depend on humans triaging messages, copy-pasting ticket details, and manually looking up docs. I wanted to build a system that:
+To demonstrate my capabilities for the Astiva AI Full Stack Engineering Intern role. I wanted to build a production-ready system that:
 
-- **Understands intent** using a fine-tuned transformer (distilBERT)
-- **Retrieves relevant context** from a vector knowledge base (FAISS + Sentence-BERT)
-- **Generates natural replies** via an LLM (GPT-2 locally, swappable to GPT-4 / Claude)
-- **Takes action** by calling enterprise APIs when the intent warrants it
-- **Retrains itself** when data drift is detected, with full observability
+- **Understands intent and acts autonomously** using LangChain multi-step agents.
+- **Retrieves relevant context** from a vector knowledge base via a robust RAG pipeline (ChromaDB + OpenAI Embeddings).
+- **Orchestrates Background Jobs** using Celery and Redis to ingest documents without blocking REST APIs.
+- **Provides a Premium UX** via a modern, dynamic React.js (Vite) dashboard built with custom Vanilla CSS (glassmorphism, dark mode).
+- **Takes action** by calling enterprise APIs when the intent warrants it.
 
 ---
 
@@ -22,34 +20,27 @@ Most internal support workflows still depend on humans triaging messages, copy-p
 
 | Category | Details |
 |---|---|
-| **NLP Pipeline** | Intent classification → Entity extraction (spaCy) → RAG retrieval → LLM response |
-| **Integrations** | JIRA (bug tickets), Salesforce (account queries), Zendesk (support tickets) |
-| **Infrastructure** | Docker multi-stage build, Kubernetes (Deployment + Service + HPA), GitHub Actions CI |
-| **Monitoring** | Prometheus counters & histograms, Sentry error tracking, structured loguru logging |
-| **MLOps** | MLflow experiment tracking, DVC pipeline, automated retraining on drift (Evidently.ai) |
+| **Agentic AI** | LangChain orchestrator, OpenAI function calling, Multi-step reasoning |
+| **RAG Pipeline** | ChromaDB vector store, Chunking strategies, Semantic retrieval |
+| **Frontend** | React.js (Vite), Glassmorphism, Backend API integration |
+| **Backend / APIs** | FastAPI, Celery background workers, Redis message broker |
+| **Monitoring** | Prometheus counters & histograms, structured loguru logging |
 
 ---
 
 ## Architecture
 
 ```
-User (Slack / Teams / Web)
+User (React Dashboard)
         │
         ▼
-   FastAPI Gateway   ──►  Enterprise APIs
-        │                 (JIRA, Salesforce, Zendesk)
-        ▼
-   NLP Pipeline
-   ├─ Intent Classifier (distilBERT)
-   ├─ Entity Extractor  (spaCy)
-   ├─ Vector Search      (FAISS + Sentence-BERT)
-   └─ Response Generator (GPT-2 / LLM)
+   FastAPI Gateway   ──►  Celery / Redis (Background Ingestion)
         │
         ▼
-   Monitoring & Retraining
-   ├─ Prometheus + Grafana
-   ├─ Sentry
-   └─ MLflow + DVC pipeline
+   LangChain Agent (Multi-step Reasoning)
+   ├─ Tool 1: RAG Search (ChromaDB)
+   ├─ Tool 2: External API Calls (Competitive Intel)
+   └─ Response Generation (GPT-4o)
 ```
 
 ---
@@ -59,36 +50,24 @@ User (Slack / Teams / Web)
 ```
 ├── app/
 │   ├── main.py                  # FastAPI server & endpoints
-│   ├── pipeline.py              # End-to-end NLP pipeline
-│   ├── monitoring.py            # Prometheus + Sentry helpers
-│   ├── retrain_trigger.py       # MLflow-based retraining trigger
+│   ├── celery_worker.py         # Celery tasks (Background RAG ingestion)
 │   ├── config.py                # Centralised env config
-│   ├── integrations/
-│   │   └── external_apis.py     # JIRA / Salesforce / Zendesk
-│   ├── models/
-│   │   ├── intent_classifier.py
-│   │   ├── response_generator.py
-│   │   ├── entity_extractor.py
-│   │   └── vector_search.py
-│   └── utils/
-│       └── logger.py            # Loguru-based logger
-├── tests/
-│   ├── conftest.py
-│   ├── test_main.py
-│   └── test_intent_classifier.py
+│   ├── agents/                  # LangChain Agentic AI
+│   │   ├── tools.py             # Agent tools (RAG search, external APIs)
+│   │   └── workflow.py          # Agent orchestrator 
+│   ├── rag/                     # RAG Pipeline
+│   │   ├── indexing.py          # Document loaders & chunking
+│   │   └── retrieval.py         # ChromaDB retrieval strategies
+│   └── integrations/
+│       └── external_apis.py     # External platform integrations
+├── frontend/                    # Premium React Dashboard (Vite)
+│   ├── src/
+│   │   ├── App.jsx              # Main Dashboard component
+│   │   └── App.css              # Custom styling
+│   └── package.json
 ├── docker/
-│   └── Dockerfile
 ├── k8s/
-│   ├── deployment.yaml
-│   └── service.yaml
-├── retraining/
-│   └── pipeline.yaml
-├── .github/workflows/
-│   └── ci.yml
-├── docker-compose.yml
 ├── requirements.txt
-├── .env.example
-├── CONTRIBUTING.md
 └── README.md
 ```
 
@@ -98,14 +77,15 @@ User (Slack / Teams / Web)
 
 ### Prerequisites
 - Python 3.10+
-- Docker & Docker Compose (optional, for containerised setup)
+- Node.js & npm (for frontend)
+- Redis (for Celery background jobs)
 
-### Local Setup
+### Local Setup (Backend)
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/chatops-ai-platform.git
-cd chatops-ai-platform
+git clone https://github.com/Anurag-elitx/ChatOpsAI-.git
+cd ChatOpsAI-
 
 # Create a virtual environment
 python -m venv venv
@@ -113,20 +93,28 @@ source venv/bin/activate   # Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
-python -m spacy download en_core_web_sm
 
-# Configure environment variables
-cp .env.example .env
-# Edit .env with your API keys / endpoints
+# Start Redis (Example using Docker)
+docker run -p 6379:6379 -d redis
 
-# Run the server
+# Start the Celery worker
+celery -A app.celery_worker.celery_app worker --loglevel=info
+
+# Run the FastAPI server
 uvicorn app.main:server --reload
 ```
 
-### Docker Setup
+### Local Setup (Frontend)
 
 ```bash
-docker compose up --build
+# Navigate to frontend directory
+cd frontend
+
+# Install Node dependencies
+npm install
+
+# Start the Vite development server
+npm run dev
 ```
 
 ---
@@ -136,35 +124,11 @@ docker compose up --build
 | Method | Path | Description |
 |--------|------|-------------|
 | `GET` | `/` | Health check (used by K8s probes) |
-| `GET` | `/status` | Detailed app status |
-| `POST` | `/chat` | Send a message and get an AI response |
-
-### Example Request
-
-```bash
-curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "I found a bug in the login page"}'
-```
-
----
-
-## Running Tests
-
-```bash
-pytest tests/ -v
-```
+| `POST` | `/chat` | Trigger the LangChain Agent for a conversational response |
+| `POST` | `/api/v1/documents` | Ingest a document into the RAG vector store via background jobs |
 
 ---
 
 ## Deployment
 
 The project includes Kubernetes manifests in `k8s/` and a GitHub Actions CI pipeline in `.github/workflows/ci.yml` that runs linting, tests, and a Docker build on every push to `main`.
-
-![Deployment Diagram](https://github.com/user-attachments/assets/26732501-abcc-47e9-acfd-81e2cb43f4db)
-
----
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
