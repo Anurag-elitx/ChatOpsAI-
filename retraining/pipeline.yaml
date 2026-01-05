@@ -1,0 +1,27 @@
+# Retraining pipeline stages
+# Orchestrated by DVC / MLflow — each stage is run sequentially.
+
+stages:
+  - name: data-ingestion
+    description: Pull latest feedback data and merge with training corpus
+    cmd: python scripts/prepare_data.py
+    deps: []
+
+  - name: model-training
+    description: Fine-tune the intent classifier on updated data
+    cmd: python scripts/train_model.py
+    deps:
+      - data/train_data.csv
+
+  - name: evaluation
+    description: Evaluate the retrained model against the test set
+    cmd: python scripts/evaluate.py
+    deps:
+      - models/trained_model.pkl
+      - data/test_data.csv
+
+  - name: model-deployment
+    description: Push validated model artifact to the serving endpoint
+    cmd: python scripts/deploy_model.py
+    deps:
+      - models/trained_model.pkl
